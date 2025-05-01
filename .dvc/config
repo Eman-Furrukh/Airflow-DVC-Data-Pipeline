@@ -1,0 +1,6 @@
+[core]
+    remote = myremote
+['remote "myremote"']
+    url = gdrive://1PUE81Uy5l14Qitk-QeUzBAOYVe8xYXs0
+    gdrive_use_service_account = true
+    gdrive_service_account_json_file_path = C:\Users\DELL\Downloads\mlops-a3-71feaf16d3f9.json
