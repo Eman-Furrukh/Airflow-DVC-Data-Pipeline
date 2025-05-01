@@ -1,4 +1,19 @@
 stages:
+  collect_data:
+    cmd: python main.py
+    deps:
+      - main.py
+    outs:
+      - raw_data.csv
+
+  preprocess_data:
+    cmd: python process_data.py
+    deps:
+      - process_data.py
+      - raw_data.csv
+    outs:
+      - processed_data.csv
+
   train_model:
     cmd: python train_model.py
     deps:
