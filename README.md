@@ -1,114 +1,153 @@
-# 🌦️ Airflow-DVC Weather Data Pipeline
+# Weather Data Pipeline with DVC and Airflow
 
-This project is a complete data pipeline for collecting, preprocessing, and training a Linear Regression model on weather data using **DVC (Data Version Control)** and **Apache Airflow** for orchestration.
+This project demonstrates a complete ML pipeline for collecting, preprocessing, and modeling weather data using **DVC**, **Git**, and **Apache Airflow**.
+
+---
 
 ## 📁 Project Structure
 
 ```
-🔍
-🔹 main.py                  # Collects raw weather data
-🔹 process_data.py          # Cleans and preprocesses raw data
-🔹 train_model.py           # Trains linear regression model
-🔹 model.pkl                # Trained model file (generated)
-🔹 raw_data.csv             # Raw data (generated)
-🔹 processed_data.csv       # Cleaned data (generated)
-🔹 dvc.yaml                 # DVC pipeline stages
-🔹 dvc.lock                 # Locked versions of inputs/outputs
-🔹 requirements.txt         # Python dependencies
-🔹 README.md
-🔹 .dvc/                    # DVC config directory
+├── dags/
+│   └── weather_pipeline_dags.py   # Airflow DAG
+├── raw_data.csv              # Collected raw weather data
+├── processed_data.csv        # Preprocessed data
+├── model.pkl                 # Trained model
+├── main.py                   # Data collection script
+├── process_data.py           # Data preprocessing script
+├── train_model.py            # Model training script
+├── dvc.yaml                  # DVC pipeline definition
+├── dvc.lock                  # DVC lock file
+├── requirements.txt          # Python dependencies
+├── docker-compose.yaml       # Airflow setup
+├── .dvcignore
+├── .gitignore
+└── README.md                 # This file
 ```
 
 ---
 
-## ✅ Step-by-Step Setup Instructions
+## ✅ Setup Instructions
 
 ### 1. Clone the Repository
-
 ```bash
-git clone https://github.com/yourusername/Airflow-DVC-Data-Pipeline.git
+git clone <your_repo_url>
 cd Airflow-DVC-Data-Pipeline
 ```
 
-### 2. Set Up Virtual Environment
-
+### 2. Create and Activate Virtual Environment
 ```bash
 python -m venv venv
-# Activate environment:
-# On Windows:
-.\venv\Scripts\activate
-# On Mac/Linux:
-source venv/bin/activate
+venv\Scripts\activate  # On Windows
+# OR
+source venv/bin/activate  # On Linux/macOS
 ```
 
 ### 3. Install Dependencies
-
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Set Up DVC and Pull Data
-
+### 4. Set Up DVC
 ```bash
-# Initialize DVC (only needed once if starting fresh)
 dvc init
-
-# Pull data and model files from remote
-dvc pull
+dvc remote add -d myremote <remote_url>
 ```
+
+If you use Google Drive:
+```bash
+pip install dvc[gdrive]
+```
+
+### 5. Setup and Launch Airflow
+```bash
+pip install apache-airflow
+```
+
+#### Recommended (Dockerized Airflow Setup)
+```bash
+docker-compose up airflow-init
+docker-compose up
+```
+
+Access Airflow UI at: [http://localhost:8081](http://localhost:8081)
 
 ---
 
-## 🚀 Running the DVC Pipeline
+## 🔁 Pipeline Breakdown with DVC
 
-This will automatically run all stages:
+### Add DVC Stages
+```bash
+# Data Collection
+dvc stage add -n collect_data -o raw_data.csv python main.py
 
+# Data Preprocessing
+dvc stage add -n preprocess_data -d raw_data.csv -d process_data.py -o processed_data.csv python process_data.py
+
+# Model Training
+dvc stage add -n train_model -d processed_data.csv -d train_model.py -o model.pkl python train_model.py
+```
+
+### Run Full Pipeline
 ```bash
 dvc repro
 ```
 
-Stages run in order:
-1. `collect_data` → runs `main.py` → saves `raw_data.csv`
-2. `preprocess_data` → runs `process_data.py` → saves `processed_data.csv`
-3. `train_model` → runs `train_model.py` → saves `model.pkl`
-
----
-
-## 🛄 Pushing Changes 
-
-If you've made changes (e.g., retrained the model):
-
+### Track and Push Artifacts
 ```bash
-# Add changed files
-git add .
-git commit -m "Updated model or data"
+git add dvc.yaml dvc.lock .gitignore
 
-# Push to DVC remote
-dvc push
+git commit -m "Add DVC pipeline"
 
-# Push code to GitHub
-git push
+dvc push  # Push data and model to DVC remote
 ```
 
 ---
 
-## 🔀 Summary of Key Commands
+## 🚀 Running Pipeline via Airflow
+
+### DAG file (inside `dags/airflow_pipeline.py`)
+Make sure your DAG includes three PythonOperator tasks:
+- `collect_data_task`
+- `preprocess_data_task`
+- `train_model_task`
+
+Then run Airflow:
+```bash
+docker-compose up
+```
+
+### Airflow UI
+Visit: [http://localhost:8081](http://localhost:8081) and trigger the DAG manually or set a schedule interval.
+
+---
+
+## 🔄 Summary: Commands to Run Project from Scratch
 
 ```bash
-# Clone repo
-git clone <repo-url>
-cd <repo-folder>
-
-# Set up environment
+git clone <your_repo_url>
+cd Airflow-DVC-Data-Pipeline
 python -m venv venv
-.\venv\Scripts\activate  # (or source venv/bin/activate)
-
-# Install dependencies
+venv\Scripts\activate
 pip install -r requirements.txt
 
-# Pull data and model
-dvc pull
+# DVC setup
+dvc init
+pip install dvc[gdrive]  # if using Google Drive
 
-# Reproduce entire pipeline
+dvc pull  # Fetch tracked files (if available)
+
+# Airflow setup
+pip install apache-airflow  # Optional if using docker-compose
+
+# Run pipeline
+# Option 1: via DVC
 dvc repro
+
+# Option 2: via Airflow
+# (Dockerized)
+docker-compose up airflow-init
+docker-compose up
 ```
+
+
+
